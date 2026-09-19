@@ -16,7 +16,7 @@ Platforms pick a policy, users pick a level, the engine only measures.
 |---|---|---|
 | Engine (Python library + CLI) | `packages/core` | working |
 | Platform API (FastAPI, Docker) | `packages/server` | working |
-| User-side blocking (Tampermonkey userscript for Bilibili and YouTube) | `extension/userscript` | MVP, selectors not yet verified live |
+| User-side blocking (Tampermonkey userscript for Bilibili and YouTube) | `extension/userscript` | Bilibili danmaku verified in a headless browser; comment and YouTube selectors not yet verified live |
 | MV3 browser extension | `extension/mv3` | planned |
 
 ## Quick start
@@ -38,8 +38,8 @@ video and click the round **TD** button bottom-right.
 
 | level | name | examples |
 |---|---|---|
-| 0 | safe | opinions, jokes, harsh criticism of a work |
-| 1 | mild | rude tone, mild profanity, filler |
+| 0 | safe | opinions, jokes, harsh criticism of a work, memes, laughter and screaming, repeated characters |
+| 1 | mild | mild profanity, a rude tone, mocking an opinion |
 | 2 | moderate | insults at a person, scam or ad spam, crude sexual remarks |
 | 3 | severe | hate speech, sexual content involving minors or non-consent, glorifying violence, doxxing, selling drugs or weapons |
 | 4 | dangerous | credible threats, expressing or encouraging suicide or self-harm, instructions enabling serious harm |
@@ -49,18 +49,20 @@ attacks on a specific person.
 
 ## Measured on 2026-09-19
 
-Golden set of 63 hand-written comments in 11 languages (zh, en, ja, ko, es, ru, ar, de, fr, vi, hi),
-rubric in English, Jev `jev-latest`, policy `balanced` (`uv run eval/run_eval.py --backend jev`):
+Golden set of 74 hand-written comments and danmaku in 11 languages (zh, en, ja, ko, es, ru, ar, de,
+fr, vi, hi), rubric in English, Jev `jev-latest`, policy `balanced` (`uv run eval/run_eval.py --backend jev`):
 
 | exact level | within ±1 | F1 (level ≥ 2) | categories | targeted | false blocks | misses |
 |---|---|---|---|---|---|---|
-| 63 / 63 | 63 / 63 | 1.00 | 63 / 63 | 62 / 63 | 0 | 0 |
+| 74 / 74 | 74 / 74 | 1.00 | 73 / 74 | 74 / 74 | 0 | 0 |
 
-The set includes pinyin abbreviations (nmsl, sb), slang that only looks like abuse (yyds) and
-homoglyphs (傻β). With the full nine-question rubric a comment costs 520 to 580 input tokens, about
-0.02 USD per 1000 comments before caching, and 20 to 200 ms per item when batched. Threats outside
-zh/en land at 3.2 to 3.8 rather than 3.9, so policies trigger on level 3 and above. A set this small
-proves the pipeline, not the model: grow `eval/golden` before trusting thresholds in production.
+The set includes pinyin abbreviations (nmsl, sb), slang that only looks like abuse (yyds), homoglyphs
+(傻β) and danmaku idioms (火钳刘明, 前方高能, long 哈哈哈 and 啊啊啊). Of 30 normal danmaku that an earlier
+rubric flagged at the strictest setting, the current rubric flags 6, all opinions with an edge. A
+comment costs 600 to 650 input tokens with the full nine-question rubric, about 0.025 USD per 1000
+comments before caching, and 20 to 200 ms per item when batched. Threats outside zh/en can land at
+3.2 to 3.8 rather than 3.9, so policies trigger on level 3 and above. A set this small proves the
+pipeline, not the model: grow `eval/golden` before trusting thresholds in production.
 
 ## Prior art
 

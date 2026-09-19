@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ToneDown
 // @namespace    https://github.com/ziziphus-jujuba-zao/tonedown
-// @version      0.1.0
+// @version      0.2.0
 // @description  Grade comments, danmaku and live chat from safe to dangerous, then hide or blur what you don't want to see. 弹幕、评论、直播聊天分级自我屏蔽，附发帖前自查。
 // @author       ToneDown contributors
 // @homepageURL  https://github.com/ziziphus-jujuba-zao/tonedown
@@ -19,6 +19,7 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
 // @grant        GM_setValue
+// @grant        GM_deleteValue
 // @grant        GM_registerMenuCommand
 // @connect      localhost
 // @connect      127.0.0.1
@@ -34,12 +35,13 @@
     server: 'http://127.0.0.1:8080',
     apiKey: '',
     enabled: true,
-    hideLevel: 3,      // hide when level_argmax >= hideLevel; 5 = show everything
+    hideLevel: 2,      // hide when level_argmax >= hideLevel (1..4); 5 = show everything
     blur: true,        // blur the level just below hideLevel instead of showing it plainly
     composer: true,    // grade your own draft before you post it
     allow: {},         // categories you never want hidden (except level 4), e.g. {harassment: true}
   };
   const cfg = Object.assign({}, DEFAULTS, safeParse(GM_getValue('tonedown.config', '{}'), {}));
+  cfg.hideLevel = Math.min(5, Math.max(1, Number(cfg.hideLevel) || DEFAULTS.hideLevel));
   const saveCfg = () => GM_setValue('tonedown.config', JSON.stringify(cfg));
 
   const ZH = (navigator.language || '').toLowerCase().startsWith('zh');
@@ -47,13 +49,13 @@
     title: 'ToneDown · 分级屏蔽', enabled: '启用', blur: '低一档的内容打码而不是隐藏', composer: '发帖前自查草稿',
     allow: '不屏蔽这些类别（危险级除外）', server: '服务器', key: 'API key', test: '测试连接', ok: '连接正常', fail: '连接失败',
     stats: (s) => `已评分 ${s.graded} · 隐藏 ${s.hidden} · 打码 ${s.blurred} · 缓存命中 ${s.cached}`,
-    slider: ['只看安全', '隐藏 轻微及以上', '隐藏 中度及以上', '隐藏 严重及以上', '只隐藏 危险', '全部显示'],
+    slider: ['只看安全', '隐藏 中度及以上', '隐藏 严重及以上', '只隐藏 危险', '全部显示'],
     folded: '已折叠', reveal: '点击查看', draft: '草稿等级', draftHint: '发出去可能被折叠或拦截',
   } : {
     title: 'ToneDown', enabled: 'Enabled', blur: 'Blur the level just below instead of showing it', composer: 'Check my draft before posting',
     allow: 'Never hide these categories (except dangerous)', server: 'Server', key: 'API key', test: 'Test connection', ok: 'Connected', fail: 'Connection failed',
     stats: (s) => `graded ${s.graded} · hidden ${s.hidden} · blurred ${s.blurred} · cache hits ${s.cached}`,
-    slider: ['safe only', 'hide mild and up', 'hide moderate and up', 'hide severe and up', 'hide dangerous only', 'show everything'],
+    slider: ['safe only', 'hide moderate and up', 'hide severe and up', 'hide dangerous only', 'show everything'],
     folded: 'Folded', reveal: 'click to reveal', draft: 'Draft level', draftHint: 'may be folded or blocked when posted',
   };
   const CAT = ZH
@@ -62,26 +64,31 @@
   const LEVEL = ZH ? ['安全', '轻微', '中度', '严重', '危险'] : ['safe', 'mild', 'moderate', 'severe', 'dangerous'];
   const LEVEL_COLOR = ['#2e7d32', '#8d9e2c', '#e0a100', '#e65100', '#b71c1c'];
 
-  const stats = { graded: 0, hidden: 0, blurred: 0, cached: 0 };
+  const stats = { graded: 0, cached: 0 };
   const isTop = window.top === window;
 
   // ------------------------------------------------------------------ cache
+  // Keyed by normalized text. The key name carries a version so verdicts from an older rubric are dropped.
+  const CACHE_KEY = 'tonedown.cache.v2';
+  try { GM_deleteValue('tonedown.cache'); } catch (e) { /* older managers */ }
   const cache = new Map();
-  for (const [k, v] of safeParse(GM_getValue('tonedown.cache', '[]'), [])) cache.set(k, v);
+  for (const [k, v] of safeParse(GM_getValue(CACHE_KEY, '[]'), [])) cache.set(k, v);
   let cacheDirty = false;
   setInterval(() => {
     if (!cacheDirty) return;
     cacheDirty = false;
     const entries = Array.from(cache.entries());
-    GM_setValue('tonedown.cache', JSON.stringify(entries.slice(Math.max(0, entries.length - 3000))));
+    GM_setValue(CACHE_KEY, JSON.stringify(entries.slice(Math.max(0, entries.length - 3000))));
   }, 15000);
 
-  const norm = (s) => s.normalize('NFKC').replace(/[\u200b-\u200f\u2028-\u202e\u2060-\u2064\ufeff]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const ZERO_WIDTH = new RegExp('[' + String.fromCharCode(0x200b) + '-' + String.fromCharCode(0x200f)
+    + String.fromCharCode(0x2028) + '-' + String.fromCharCode(0x202e) + String.fromCharCode(0x2060) + '-'
+    + String.fromCharCode(0x2064) + String.fromCharCode(0xfeff) + ']', 'g');
+  const norm = (s) => s.normalize('NFKC').replace(ZERO_WIDTH, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const cleanText = (s) => (s || '').replace(/\s+/g, ' ').replace(/^\+\d+ /, '').trim();
 
-  // ------------------------------------------------------------------ queue
+  // ------------------------------------------------------------------ grading queue
   const pending = new Map();   // norm text -> { text, entries: [] }
-  const graded = [];           // { entry, verdict } for re-applying when settings change
-  const seen = new WeakSet();
   let flushTimer = null;
   let backoffUntil = 0;
 
@@ -133,12 +140,27 @@
     });
   }
 
+  // ------------------------------------------------------------------ per-node state
+  // Players reuse DOM elements for new danmaku, so a verdict belongs to (node, text), never to the node alone.
+  const state = new WeakMap();   // node -> { text, verdict, entry, action }
+  const tracked = new Set();     // nodes that currently carry a verdict, for re-applying when settings change
+
   function settle(entry, verdict) {
     stats.graded++;
     if (entry.onVerdict) { entry.onVerdict(verdict); return; }
-    graded.push({ entry, verdict });
-    apply(entry, verdict);
+    const st = state.get(entry.node);
+    if (!st || st.text !== entry.text) return;   // the element moved on to another text while we were grading
+    st.verdict = verdict;
+    tracked.add(entry.node);
+    apply(st);
     renderStats();
+  }
+
+  function forget(node) {
+    const st = state.get(node);
+    if (st) clearMarks(st.entry);
+    state.delete(node);
+    tracked.delete(node);
   }
 
   // ------------------------------------------------------------------ decisions
@@ -155,26 +177,49 @@
     const top = topCategory(v);
     if (top && cfg.allow[top] && lvl < 4) return 'show';
     if (cfg.hideLevel <= 4 && lvl >= cfg.hideLevel) return 'hide';
-    if (cfg.blur && lvl >= 1 && lvl === cfg.hideLevel - 1) return 'blur';
+    if (cfg.blur && cfg.hideLevel <= 4 && lvl >= 1 && lvl === cfg.hideLevel - 1) return 'blur';
     return 'show';
   }
 
-  function apply(entry, verdict) {
-    const action = decide(verdict);
+  // Hiding is done with data attributes plus injected !important rules, because the Bilibili player
+  // rewrites the inline style of every danmaku element it reuses.
+  const RULES = '[data-tonedown-hide="v"]{visibility:hidden !important}'
+    + '[data-tonedown-hide="d"]{display:none !important}'
+    + '[data-tonedown-blur="1"]{filter:blur(5px) !important;opacity:.65 !important}';
+  const styledRoots = new WeakSet();
+  function ensureStyles(root) {
+    if (!root || styledRoots.has(root)) return;
+    styledRoots.add(root);
+    const el = document.createElement('style');
+    el.className = 'tonedown-rules';
+    el.textContent = RULES;
+    (root === document ? document.head : root).appendChild(el);
+  }
+
+  function apply(st) {
+    const entry = st.entry;
     const box = entry.container;
     const body = entry.labelHost || box;
     if (!box || !box.isConnected) return;
-    box.dataset.tonedownLevel = String(verdict.level_argmax);
-    for (const el of [box, body]) { el.style.removeProperty('display'); el.style.removeProperty('visibility'); el.style.removeProperty('filter'); el.style.removeProperty('opacity'); }
-    removeChip(body);
+    const action = decide(st.verdict);
+    clearMarks(entry);
+    st.action = action;
+    box.dataset.tonedownLevel = String(st.verdict.level_argmax);
     if (action === 'hide') {
-      if (entry.kind === 'danmaku') box.style.visibility = 'hidden'; else box.style.display = 'none';
-      stats.hidden++;
+      ensureStyles(box.getRootNode());
+      box.setAttribute('data-tonedown-hide', entry.kind === 'danmaku' ? 'v' : 'd');
     } else if (action === 'blur') {
-      body.style.filter = 'blur(5px)'; body.style.opacity = '0.65';
-      if (entry.kind !== 'danmaku') addChip(body, verdict);
-      stats.blurred++;
+      ensureStyles(body.getRootNode());
+      body.setAttribute('data-tonedown-blur', '1');
+      if (entry.kind !== 'danmaku') addChip(body, st.verdict);
     }
+  }
+
+  function clearMarks(entry) {
+    const box = entry.container;
+    const body = entry.labelHost || box;
+    if (box) { box.removeAttribute('data-tonedown-hide'); delete box.dataset.tonedownLevel; }
+    if (body) { body.removeAttribute('data-tonedown-blur'); removeChip(body); }
   }
 
   function addChip(body, verdict) {
@@ -183,25 +228,26 @@
     const cat = topCategory(verdict);
     chip.textContent = `${T.folded}: ${cat ? CAT[cat] + ' · ' : ''}${LEVEL[verdict.level_argmax]} · ${T.reveal}`;
     chip.style.cssText = `all:unset;cursor:pointer;display:inline-block;margin:2px 0;padding:1px 8px;border-radius:10px;font-size:12px;color:#fff;background:${LEVEL_COLOR[verdict.level_argmax]};`;
-    chip.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); body.style.removeProperty('filter'); body.style.removeProperty('opacity'); chip.remove(); });
+    chip.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); body.removeAttribute('data-tonedown-blur'); chip.remove(); });
     body.parentNode && body.parentNode.insertBefore(chip, body);
   }
   function removeChip(body) {
     const prev = body.previousSibling;
     if (prev && prev.classList && prev.classList.contains('tonedown-chip')) prev.remove();
   }
+
   function reapplyAll() {
-    for (let i = graded.length - 1; i >= 0; i--) {
-      const g = graded[i];
-      if (!g.entry.container || !g.entry.container.isConnected) { graded.splice(i, 1); continue; }
+    for (const node of Array.from(tracked)) {
+      const st = state.get(node);
+      if (!st || !node.isConnected) { forget(node); continue; }
+      apply(st);
     }
-    stats.hidden = 0; stats.blurred = 0;
-    for (const g of graded) apply(g.entry, g.verdict);
     renderStats();
   }
 
   // ------------------------------------------------------------------ adapters
-  // Each adapter sweeps the page for unseen nodes and returns {node, container, labelHost, text, kind}.
+  // Each adapter sweeps the page and returns {node, container, labelHost, text}. `node` is the element whose
+  // text is watched; when its text changes it is judged again.
   function deepQueryAll(root, selector, out = []) {
     if (!root || !root.querySelectorAll) return out;
     root.querySelectorAll(selector).forEach((n) => out.push(n));
@@ -218,13 +264,12 @@
         for (const comments of document.querySelectorAll('bili-comments')) {
           for (const rt of deepQueryAll(comments.shadowRoot, 'bili-rich-text')) {
             const contents = rt.shadowRoot ? rt.shadowRoot.querySelector('#contents') : null;
-            const text = (contents || rt).textContent.trim();
             const container = rt.getRootNode().host || rt;
-            if (text) out.push({ node: rt, container, labelHost: contents || rt, text });
+            out.push({ node: rt, container, labelHost: contents || rt, text: cleanText((contents || rt).textContent) });
           }
         }
         for (const el of document.querySelectorAll('.reply-item .reply-content')) {
-          out.push({ node: el, container: el.closest('.reply-item') || el, labelHost: el, text: el.textContent.trim() });
+          out.push({ node: el, container: el.closest('.reply-item') || el, labelHost: el, text: cleanText(el.textContent) });
         }
         return out;
       },
@@ -235,8 +280,7 @@
       sweep() {
         const out = [];
         for (const el of document.querySelectorAll('.bili-danmaku-x-dm, .b-danmaku, .bili-dm')) {
-          const text = el.textContent.trim();
-          if (text) out.push({ node: el, container: el, labelHost: null, text });
+          out.push({ node: el, container: el, labelHost: null, text: cleanText(el.textContent) });
         }
         return out;
       },
@@ -247,8 +291,8 @@
       sweep() {
         const out = [];
         for (const el of document.querySelectorAll('.chat-item.danmaku-item')) {
-          const text = (el.dataset.danmaku || (el.querySelector('.danmaku-item-right') || el).textContent || '').trim();
-          if (text) out.push({ node: el, container: el, labelHost: el.querySelector('.danmaku-item-right'), text });
+          const body = el.querySelector('.danmaku-item-right');
+          out.push({ node: el, container: el, labelHost: body, text: cleanText(el.dataset.danmaku || (body || el).textContent) });
         }
         return out;
       },
@@ -259,8 +303,7 @@
         const out = [];
         for (const el of document.querySelectorAll('ytd-comment-view-model, ytd-comment-renderer')) {
           const body = el.querySelector('#content-text');
-          const text = body ? body.innerText.trim() : '';
-          if (text) out.push({ node: el, container: el, labelHost: body, text });
+          if (body) out.push({ node: el, container: el, labelHost: body, text: cleanText(body.innerText) });
         }
         return out;
       },
@@ -272,8 +315,7 @@
         const out = [];
         for (const el of document.querySelectorAll('yt-live-chat-text-message-renderer, yt-live-chat-paid-message-renderer')) {
           const body = el.querySelector('#message');
-          const text = body ? body.innerText.trim() : '';
-          if (text) out.push({ node: el, container: el, labelHost: body, text });
+          if (body) out.push({ node: el, container: el, labelHost: body, text: cleanText(body.innerText) });
         }
         return out;
       },
@@ -286,25 +328,35 @@
       let found;
       try { found = a.sweep(); } catch (err) { console.warn('[tonedown] adapter', a.name, err); continue; }
       for (const c of found) {
-        if (seen.has(c.node)) continue;
-        seen.add(c.node);
-        if (!c.text || c.text.length < 2) continue;
-        enqueue(Object.assign(c, { kind: a.kind, adapter: a.name }));
+        const st = state.get(c.node);
+        if (!c.text || c.text.length < 2) { if (st) forget(c.node); continue; }
+        if (st && st.text === c.text) continue;          // same text as last time: nothing to do
+        if (st) forget(c.node);                            // reused element: undo the old verdict right away
+        const entry = Object.assign(c, { kind: a.kind, adapter: a.name });
+        state.set(c.node, { text: c.text, verdict: null, entry, action: 'show' });
+        enqueue(entry);
       }
     }
   }
-  let sweepTimer = null;
-  const scheduleSweep = (ms) => { if (!sweepTimer) sweepTimer = setTimeout(() => { sweepTimer = null; sweepAll(); }, ms); };
+  let sweepTimer = null, sweepDue = 0;
+  function scheduleSweep(ms) {
+    const due = Date.now() + ms;
+    if (sweepTimer && sweepDue <= due) return;
+    clearTimeout(sweepTimer);
+    sweepDue = due;
+    sweepTimer = setTimeout(() => { sweepTimer = null; sweepAll(); }, ms);
+  }
   new MutationObserver(() => scheduleSweep(400)).observe(document.documentElement, { childList: true, subtree: true });
   setInterval(sweepAll, 1500);
-  // Danmaku live for a few seconds only, so watch their container directly and grade at once.
+  setInterval(() => { for (const node of Array.from(tracked)) if (!node.isConnected) forget(node); }, 30000);
+  // Danmaku live for a few seconds and their elements are recycled, so watch the container itself, text included.
   setInterval(() => {
     for (const a of adapters) {
       if (!a.hot || a.hotObserved) continue;
       const el = document.querySelector(a.hot);
       if (!el) continue;
       a.hotObserved = true;
-      new MutationObserver(() => scheduleSweep(50)).observe(el, { childList: true, subtree: true });
+      new MutationObserver(() => scheduleSweep(50)).observe(el, { childList: true, subtree: true, characterData: true });
     }
   }, 2000);
   sweepAll();
@@ -335,9 +387,21 @@
   }
 
   // ------------------------------------------------------------------ panel
-  let panel, button, dot, statsEl;
+  let panel, button, dot, statsEl, statsTimer = null;
   function setDot(bad) { if (dot) dot.style.background = bad ? '#d32f2f' : '#2e7d32'; }
-  function renderStats() { if (statsEl) statsEl.textContent = T.stats(stats); }
+  function renderStats() {
+    if (!statsEl || statsTimer) return;
+    statsTimer = setTimeout(() => {
+      statsTimer = null;
+      let hidden = 0, blurred = 0;
+      for (const node of tracked) {
+        const st = state.get(node);
+        if (!st) continue;
+        if (st.action === 'hide') hidden++; else if (st.action === 'blur') blurred++;
+      }
+      statsEl.textContent = T.stats({ graded: stats.graded, cached: stats.cached, hidden, blurred });
+    }, 300);
+  }
   function buildPanel() {
     if (!isTop || panel) return;
     const css = document.createElement('style');
@@ -363,7 +427,7 @@
     panel.innerHTML = `
       <h3>${T.title}</h3>
       <label><input type="checkbox" id="tonedown-enabled" ${cfg.enabled ? 'checked' : ''}> ${T.enabled}</label>
-      <label><input type="range" id="tonedown-level" min="1" max="6" value="${cfg.hideLevel}"><span id="tonedown-level-text"></span></label>
+      <label><input type="range" id="tonedown-level" min="1" max="5" value="${cfg.hideLevel}"><span id="tonedown-level-text"></span></label>
       <label><input type="checkbox" id="tonedown-blur" ${cfg.blur ? 'checked' : ''}> ${T.blur}</label>
       <label><input type="checkbox" id="tonedown-composer" ${cfg.composer ? 'checked' : ''}> ${T.composer}</label>
       <div><small>${T.allow}</small><div class="tonedown-cats">${cats}</div></div>

@@ -18,8 +18,10 @@ Two delivery forms share the same adapters and decision logic:
 | youtube.com live chat (the `/live_chat` iframe) | live chat messages | `youtube-livechat` |
 | every matched site | composer self-check on `textarea` and `contenteditable` boxes | built in |
 
-DOM selectors were written against the page structures as of September 2026 and have not yet been
-verified in a live browser session; if a site changes its markup, fix the adapter's `sweep()` and
+The Bilibili danmaku adapter was verified in a headless Chrome session on 2026-09-19 (reused player
+elements are re-judged when their text changes; hiding survives the player's style rewrites). The
+comment adapters and the YouTube adapters were written against the page structures as of September
+2026 and are not yet verified live; if a site changes its markup, fix the adapter's `sweep()` and
 report it with the misjudgment issue template.
 
 ## Setup
@@ -27,8 +29,10 @@ report it with the misjudgment issue template.
 1. Run the server (`uv run tonedown-server`) or point the script at a hosted one.
 2. Install the userscript, open a video page, click the round **TD** button bottom-right.
 3. Set server URL and API key if the server requires one, press *Test connection*.
-4. Move the slider. Levels: 1 safe only … 5 hide dangerous only, 6 show everything. The level just
-   below your threshold is blurred with a label you can click to reveal.
+4. Move the slider: safe only, hide moderate and up (default), hide severe and up, hide dangerous
+   only, show everything. The level just below your threshold is blurred with a label you can click
+   to reveal. Danmaku elements are reused by the Bilibili player, so every element is re-judged
+   whenever its text changes.
 
 The API key never needs to be a Jev key: the server holds that. Give users a per-user server key, or
 run the server on `localhost` with open access.

@@ -8,7 +8,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-RUBRIC_VERSION = "2026.09.19"
+RUBRIC_VERSION = "2026.09.19.2"
 """Bump whenever rubric wording changes; it is part of every cache key."""
 
 

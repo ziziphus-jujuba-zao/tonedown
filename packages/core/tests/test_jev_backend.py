@@ -28,7 +28,7 @@ def _handler(request: httpx2.Request) -> httpx2.Response:
 
 def test_build_request_names_questions_per_item():
     state, qs = build_request(["a", "b"])
-    assert list(state) == ["c0", "c1"]
+    assert list(state) == ["context", "c0", "c1"]
     assert "c1_risk" in qs and "c0_cat_hate" in qs and "c1_targeted" in qs
     assert len(qs) == 2 * (2 + len(Category))
 

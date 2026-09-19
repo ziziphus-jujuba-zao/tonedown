@@ -11,16 +11,16 @@ from typesafe_sdk import AsyncTypeSafeClient, Question, SystemOneResponse, TypeS
 from typesafe_sdk.constants import DEFAULT_MODEL, DEFAULT_MODEL_ENV
 
 from tonedown.backends.base import Backend, chunked
-from tonedown.rubric import questions
+from tonedown.rubric import CONTEXT, questions
 from tonedown.schema import Category, RawVerdict
 
 
 def build_request(texts: Sequence[str]) -> tuple[dict[str, str], dict[str, Question]]:
-    """State keys c0..cN and the merged question set for one API call."""
-    state = {f"c{i}": text for i, text in enumerate(texts)}
+    """State entries context, c0..cN and the merged question set for one API call."""
+    state = {"context": CONTEXT, **{f"c{i}": text for i, text in enumerate(texts)}}
     qs: dict[str, Question] = {}
-    for key in state:
-        qs.update(questions(key))
+    for i in range(len(texts)):
+        qs.update(questions(f"c{i}"))
     return state, qs
 
 

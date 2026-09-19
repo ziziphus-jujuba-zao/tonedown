@@ -12,3 +12,14 @@
 {"id": "zh-012", "text": "主播傻β一个，早点润吧", "level": 2, "categories": ["harassment"], "targeted": true, "note": "greek letter homoglyph"}
 {"id": "zh-013", "text": "想买点货的私聊，冰的纯的都有", "level": 3, "categories": ["illegal"], "targeted": false, "note": "drug sale in slang"}
 {"id": "zh-014", "text": "这个up主的视频质量越来越差了，取关了", "level": 0, "categories": [], "targeted": false}
+{"id": "zh-015", "text": "哈哈哈哈哈哈哈哈哈哈", "level": 0, "categories": [], "targeted": false, "note": "laughter"}
+{"id": "zh-016", "text": "啊啊啊啊啊啊啊啊啊啊啊啊", "level": 0, "categories": [], "targeted": false, "note": "screaming"}
+{"id": "zh-017", "text": "火钳刘明", "level": 0, "categories": [], "targeted": false, "note": "meme: 火前留名"}
+{"id": "zh-018", "text": "再来亿遍", "level": 0, "categories": [], "targeted": false, "note": "meme"}
+{"id": "zh-019", "text": "律师函警告", "level": 0, "categories": [], "targeted": false, "note": "meme"}
+{"id": "zh-020", "text": "前方高能", "level": 0, "categories": [], "targeted": false, "note": "danmaku idiom"}
+{"id": "zh-021", "text": "爆 元梦之星是吧", "level": 0, "categories": [], "targeted": false, "note": "reaction with a game name"}
+{"id": "zh-022", "text": "鸡你太美", "level": 0, "categories": [], "targeted": false, "note": "meme"}
+{"id": "zh-023", "text": "up主辛苦了", "level": 0, "categories": [], "targeted": false}
+{"id": "zh-024", "text": "卧槽,我上过那个网站", "level": 1, "categories": [], "targeted": false, "note": "mild profanity, no target"}
+{"id": "zh-025", "text": "hhhhhhhhhh靠", "level": 1, "categories": [], "targeted": false, "note": "mild profanity"}

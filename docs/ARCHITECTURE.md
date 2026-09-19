@@ -45,6 +45,9 @@ rubric is written once in English and the content can be in any language.
 
 ## Multilingual strategy
 
+- Rubric in English, content in any language. Every batch carries a shared `context` entry that
+  says the texts are comments and danmaku under videos, so memes, laughter and repeated characters
+  are read the way the community reads them.
 - Rubric in English, content in any language. Criteria can carry per-language examples where a
   concept is culture-specific (regional discrimination, caste, religion).
 - Language detection only chooses lexicons and routing; when it fails the page language or the user's
