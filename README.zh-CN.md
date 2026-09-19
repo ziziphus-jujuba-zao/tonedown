@@ -34,7 +34,7 @@ uv run eval/run_eval.py         # 金标集上的分语言成绩表
 ## YouTube 能用吗
 
 能。评论区和直播聊天都有适配器。评论走 `ytd-comment-view-model` 节点，直播聊天在 `/live_chat`
-的 iframe 里单独运行一份脚本。选择器按 2026 年 9 月的页面结构写，还没有在真实浏览器里验证过，
+的 iframe 里单独运行一份脚本。这些选择器还没有在真实浏览器里验证过，
 页面改版就到 `extension/userscript/tonedown.user.js` 里改对应的 `sweep()`。
 
 ## 分级
@@ -49,7 +49,7 @@ uv run eval/run_eval.py         # 金标集上的分语言成绩表
 
 类别：广告、辱骂、仇恨、色情、暴力、自伤、违法，另有「是否针对具体个人」的标记。
 
-## 2026-09-19 的实测
+## 实测结果
 
 金标集 74 条手写评论和弹幕，11 种语言（中、英、日、韩、西、俄、阿、德、法、越、印地），rubric 用英文，
 Jev `jev-latest`，策略 `balanced`，命令 `uv run eval/run_eval.py --backend jev`：

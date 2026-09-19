@@ -10,5 +10,5 @@
 | 5 Local mode | Qwen3Guard backend verified, language routing, public-dataset comparison in README | eval table with both backends |
 | 6 Community | contributing guide, adapter template, misjudgment issues feeding the golden set, releases | first outside adapter merged |
 
-Status on 2026-09-19: phases 0 to 3 scaffolded in one session; live-browser verification of the
-userscript adapters and the Qwen3Guard backend are the first open items.
+Status: phases 0 to 3 are in place. The Bilibili danmaku adapter is verified in a headless browser.
+The comment and YouTube adapters and the Qwen3Guard backend still need live verification.

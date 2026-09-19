@@ -18,11 +18,10 @@ Two delivery forms share the same adapters and decision logic:
 | youtube.com live chat (the `/live_chat` iframe) | live chat messages | `youtube-livechat` |
 | every matched site | composer self-check on `textarea` and `contenteditable` boxes | built in |
 
-The Bilibili danmaku adapter was verified in a headless Chrome session on 2026-09-19 (reused player
-elements are re-judged when their text changes; hiding survives the player's style rewrites). The
-comment adapters and the YouTube adapters were written against the page structures as of September
-2026 and are not yet verified live; if a site changes its markup, fix the adapter's `sweep()` and
-report it with the misjudgment issue template.
+The Bilibili danmaku adapter is verified in a headless Chrome session: reused player elements are
+re-judged when their text changes, and hiding survives the player's style rewrites. The comment
+adapters and the YouTube adapters are not yet verified live. If a site changes its markup, fix the
+adapter's `sweep()` and report it with the misjudgment issue template.
 
 ## Setup
 
