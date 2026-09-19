@@ -1,0 +1,32 @@
+name: Misjudgment
+description: The grade for a text was wrong. Each report becomes a golden-set line.
+labels: [misjudgment]
+body:
+  - type: input
+    id: text
+    attributes:
+      label: The text (exactly as it appeared)
+    validations:
+      required: true
+  - type: dropdown
+    id: lang
+    attributes:
+      label: Language
+      options: [zh, en, ja, ko, es, ru, ar, de, fr, vi, hi, other]
+    validations:
+      required: true
+  - type: dropdown
+    id: expected
+    attributes:
+      label: Level you expected
+      options: ["0 safe", "1 mild", "2 moderate", "3 severe", "4 dangerous"]
+    validations:
+      required: true
+  - type: input
+    id: got
+    attributes:
+      label: Level and category it got
+  - type: textarea
+    id: why
+    attributes:
+      label: Why (sarcasm, quote, slang, in-group usage, context...)

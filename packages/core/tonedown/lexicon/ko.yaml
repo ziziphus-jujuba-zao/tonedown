@@ -1,0 +1,6 @@
+lang: ko
+entries:
+  - {term: 병신, level: 2, category: harassment, targeted: true}
+  - {term: 죽어, level: 3, category: violence, targeted: true}
+  - {term: 꺼져, level: 1, category: harassment}
+  - {term: 재택 알바, level: 1, category: spam}

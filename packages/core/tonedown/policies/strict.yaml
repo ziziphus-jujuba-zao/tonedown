@@ -1,0 +1,11 @@
+name: strict
+description: Family or classroom setting. Anything beyond mild goes, mild goes to review.
+block_level: 2.0
+review_level: 1.0
+min_confidence: 0.5
+category_threshold: 0.6
+category_min_action:
+  spam: block
+  sexual: block
+category_max_action:
+  self_harm: review

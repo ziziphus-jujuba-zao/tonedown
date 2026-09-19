@@ -1,0 +1,5 @@
+{"id": "es-001", "text": "Qué buen episodio, por fin mejora el ritmo", "level": 0, "categories": [], "targeted": false}
+{"id": "es-002", "text": "El autor es un imbécil sin cerebro", "level": 2, "categories": ["harassment"], "targeted": true}
+{"id": "es-003", "text": "Sé dónde vives, mañana lo vas a lamentar", "level": 4, "categories": ["violence"], "targeted": true}
+{"id": "es-004", "text": "¡Gana 3000 al día desde casa! Escríbeme por DM", "level": 2, "categories": ["spam"], "targeted": false}
+{"id": "es-005", "text": "La gente de ese país son todos ladrones, que se vayan", "level": 3, "categories": ["hate"], "targeted": false}

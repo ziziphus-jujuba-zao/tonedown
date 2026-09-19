@@ -1,0 +1,14 @@
+{"id": "zh-001", "text": "这集节奏太好了，导演有点东西", "level": 0, "categories": [], "targeted": false}
+{"id": "zh-002", "text": "剧情烂尾了，编剧真的没用心，浪费我两个小时", "level": 0, "categories": [], "targeted": false, "note": "harsh criticism of a work, not a person"}
+{"id": "zh-003", "text": "前面的能不能别刷屏了，烦死了", "level": 1, "categories": [], "targeted": false}
+{"id": "zh-004", "text": "楼主就是个傻X，脑子有病吧", "level": 2, "categories": ["harassment"], "targeted": true}
+{"id": "zh-005", "text": "加V信xxx888领红包，日赚三千不是梦", "level": 2, "categories": ["spam"], "targeted": false}
+{"id": "zh-006", "text": "XX省的人天生就是小偷，全都该滚出去", "level": 3, "categories": ["hate"], "targeted": false}
+{"id": "zh-007", "text": "我已经知道你住哪了，明天等着挨刀吧", "level": 4, "categories": ["violence"], "targeted": true}
+{"id": "zh-008", "text": "活着真没意思，想从楼上跳下去算了", "level": 4, "categories": ["self_harm"], "targeted": false}
+{"id": "zh-009", "text": "楼主nmsl", "level": 2, "categories": ["harassment"], "targeted": true, "note": "pinyin abbreviation"}
+{"id": "zh-010", "text": "编剧就是个sb", "level": 2, "categories": ["harassment"], "targeted": true}
+{"id": "zh-011", "text": "这剧yyds，笑死我了", "level": 0, "categories": [], "targeted": false, "note": "slang that looks like an abbreviation but is praise"}
+{"id": "zh-012", "text": "主播傻β一个，早点润吧", "level": 2, "categories": ["harassment"], "targeted": true, "note": "greek letter homoglyph"}
+{"id": "zh-013", "text": "想买点货的私聊，冰的纯的都有", "level": 3, "categories": ["illegal"], "targeted": false, "note": "drug sale in slang"}
+{"id": "zh-014", "text": "这个up主的视频质量越来越差了，取关了", "level": 0, "categories": [], "targeted": false}

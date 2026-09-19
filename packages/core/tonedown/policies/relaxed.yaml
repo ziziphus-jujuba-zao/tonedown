@@ -1,0 +1,10 @@
+name: relaxed
+description: Adult community that tolerates rough language. Only dangerous content is blocked outright.
+block_level: 4.0
+review_level: 3.0
+min_confidence: 0.7
+category_threshold: 0.8
+category_min_action:
+  spam: review
+category_max_action:
+  self_harm: review

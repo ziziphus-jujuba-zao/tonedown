@@ -1,0 +1,15 @@
+# Seed list for Chinese, including pinyin abbreviations and homophone spellings. Levels follow the rubric.
+lang: zh
+entries:
+  - {term: nmsl, level: 2, category: harassment, targeted: true}
+  - {term: 你妈死了, level: 2, category: harassment, targeted: true}
+  - {term: 傻逼, level: 2, category: harassment, targeted: true}
+  - {term: 傻b, level: 2, category: harassment, targeted: true}
+  - {term: 煞笔, level: 2, category: harassment, targeted: true}
+  - {term: 脑残, level: 2, category: harassment, targeted: true}
+  - {term: 去死吧, level: 3, category: violence, targeted: true}
+  - {term: 加v信, level: 2, category: spam}
+  - {term: 加微信, level: 1, category: spam}
+  - {term: 领红包, level: 1, category: spam}
+  - {term: 日赚, level: 2, category: spam}
+  - {term: 兼职刷单, level: 2, category: spam}

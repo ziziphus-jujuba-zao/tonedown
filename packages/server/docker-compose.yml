@@ -1,0 +1,16 @@
+# From the repository root:  docker compose -f packages/server/docker-compose.yml up --build
+services:
+  tonedown:
+    build:
+      context: ../..
+      dockerfile: packages/server/Dockerfile
+    env_file: ../../.env
+    environment:
+      TONEDOWN_CACHE_PATH: /data/cache.sqlite
+      TONEDOWN_FEEDBACK_PATH: /data/feedback.jsonl
+    ports:
+      - "8080:8080"
+    volumes:
+      - tonedown-data:/data
+volumes:
+  tonedown-data:

@@ -1,0 +1,5 @@
+{"id": "ru-001", "text": "Отличная серия, наконец-то темп пошёл", "level": 0, "categories": [], "targeted": false}
+{"id": "ru-002", "text": "Автор — безмозглый идиот", "level": 2, "categories": ["harassment"], "targeted": true}
+{"id": "ru-003", "text": "Я знаю, где ты живёшь, завтра пожалеешь", "level": 4, "categories": ["violence"], "targeted": true}
+{"id": "ru-004", "text": "Зарабатывай 3000 в день дома! Пиши в личку", "level": 2, "categories": ["spam"], "targeted": false}
+{"id": "ru-005", "text": "Люди из той страны все воры, пусть убираются", "level": 3, "categories": ["hate"], "targeted": false}

@@ -1,0 +1,5 @@
+lang: ru
+entries:
+  - {term: сдохни, level: 3, category: violence, targeted: true}
+  - {term: тварь, level: 2, category: harassment, targeted: true}
+  - {term: пиши в личку, level: 1, category: spam}

@@ -1,0 +1,10 @@
+name: balanced
+description: Block clearly severe or dangerous content, send moderate content and low-confidence calls to review.
+block_level: 3.0
+review_level: 2.0
+min_confidence: 0.6
+category_threshold: 0.7
+category_min_action:
+  spam: block
+category_max_action:
+  self_harm: review   # a person in distress must reach a human, never be silently removed

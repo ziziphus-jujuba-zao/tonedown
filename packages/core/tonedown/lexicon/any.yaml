@@ -1,0 +1,5 @@
+# Terms that appear across languages.
+lang: any
+entries:
+  - {term: telegram @, level: 1, category: spam}
+  - {term: onlyfans, level: 1, category: sexual}

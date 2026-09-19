@@ -1,0 +1,5 @@
+lang: es
+entries:
+  - {term: hijo de puta, level: 2, category: harassment, targeted: true}
+  - {term: muérete, level: 3, category: violence, targeted: true}
+  - {term: gana dinero desde casa, level: 1, category: spam}

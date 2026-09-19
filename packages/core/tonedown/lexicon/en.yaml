@@ -1,0 +1,9 @@
+lang: en
+entries:
+  - {term: kys, level: 4, category: self_harm, targeted: true}
+  - {term: kill yourself, level: 4, category: self_harm, targeted: true}
+  - {term: go die, level: 3, category: violence, targeted: true}
+  - {term: fuck you, level: 2, category: harassment, targeted: true}
+  - {term: retard, level: 3, category: hate}
+  - {term: dm me for, level: 1, category: spam}
+  - {term: limited spots, level: 1, category: spam}

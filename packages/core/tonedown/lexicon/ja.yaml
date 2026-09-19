@@ -1,0 +1,7 @@
+lang: ja
+entries:
+  - {term: 死ね, level: 3, category: violence, targeted: true}
+  - {term: しね, level: 3, category: violence, targeted: true}
+  - {term: 殺す, level: 3, category: violence, targeted: true}
+  - {term: キモい, level: 1, category: harassment}
+  - {term: 副業で稼げ, level: 1, category: spam}
